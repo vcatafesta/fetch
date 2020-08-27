@@ -1,0 +1,5 @@
+#!/bin/bash
+cp -fv /chili/fetch .
+git add fetch
+git commit -m "updated"
+git push
