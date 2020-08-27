@@ -2,28 +2,29 @@
 #           build options                     #
 ###############################################
 #
-####### Building fetch support ################
+####### Building iso2usb support ########
 #
 #
 
 SHELL=/bin/bash
 DESTDIR=
-BINDIR=${DESTDIR}
-INFODIR=${DESTDIR}/share/info
+BINDIR=${DESTDIR}/sbin
+INFODIR=${DESTDIR}/usr/share/doc/fetch
 MODE=775
 DIRMODE=755
 
 .PHONY: build
 
 install:
-	mkdir -p ${BINDIR}/sbin
-	install -m ${MODE} src/fetch ${BINDIR}/sbin/fetch
+	mkdir -p ${BINDIR}
+	install -m ${MODE} src/fetch ${BINDIR}/fetch
 	mkdir -p ${INFODIR}
 	cp ChangeLog INSTALL LICENSE MAINTAINERS README.md ${INFODIR}/
-	@echo "Software was installed in ${BINDIR}"
+	@echo "Software fetch was installed in ${BINDIR}"
 
 uninstall:
 	rm ${BINDIR}/fetch
-	@echo "Software was removed."
+	rm -rf ${INFODIR}
+	@echo "Software fetch was removed."
 
 
