@@ -1,6 +1,44 @@
-#!/bin/bash
-# awk -F: '{print $1}' /var/cache/fetch/search/packages-split | grep ^python$
+#!/bin/env bash
 
+ # core.sh - biblisearch, install, create, remove, upgrade packages compatible with:
+ # ChiliOS GNU/Linux - https://github.com/vcatafesta/ChiliOS
+ # ChiliOS GNU/Linux - https://chilios.com.br
+ # MazonOS GNU/Linux - http://mazonos.com
+ #
+ # Created: 2019/04/05
+ # Altered: 2022/03/07
+ #
+ # Copyright (c) 2019 - 2020, Vilmar Catafesta <vcatafesta@gmail.com>
+ # All rights reserved.
+ #
+ # contains portion of software https://bananapkg.github.io/
+ #
+ # Redistribution and use in source and binary forms, with or without
+ # modification, are permitted provided that the following conditions
+ # are met:
+ # 1. Redistributions of source code must retain the above copyright
+ #    notice, this list of conditions and the following disclaimer.
+ # 2. Redistributions in binary form must reproduce the above copyright
+ #    notice, this list of conditions and the following disclaimer in the
+ #    documentation and/or other materials provided with the distribution.
+ # 3. The name of the copyright holders or contributors may not be used to
+ #    endorse or promote products derived from this software without
+ #    specific prior written permission.
+ #
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ # ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ # PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT
+ # HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ # SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ # LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ # DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#########################################################################
+
+# awk -F: '{print $1}' /var/cache/fetch/search/packages-split | grep ^python$
 #fatorial
 #seq -s* 6 | bc
 #cat <(echo xxx; sleep 3; echo yyy; sleep 3)
@@ -119,6 +157,34 @@ CURS_ZERO="\\033[0G"
 : ${PKG_SIZE=7}
 
 # SUBROUTINES
+
+#Autor Julio C. Neves
+function string_rfill() {
+     local string=${1// /^}    			# Trocando eventuais espaços preexistentes
+     declare -i size=$2
+     local char=$3
+     local fillString
+     printf -v fillString %-${size}s $string
+     fillString=${fillString// /$char}
+     echo "${fillString//^/ }"        	# Restaurando espaços anteriores }
+}
+
+function string_alltrim(){
+	local cstr=$1
+	echo "${cstr//[$'\t\r\n ']}"
+}
+
+function string_len()
+{
+	local cstr=$1
+#	echo ${#cstr}
+	printf ${#cstr}
+}
+
+function string_removespace(){
+	local string=${1// /^}    				# Trocando eventuais espaços preexistentes
+	echo "${string}"
+}
 
 function zshdw()
 {
@@ -342,8 +408,8 @@ function evaluate_retval()
 }
 
 function info(){
-#	dialog							\
-	whiptail							\
+#	whiptail							\
+	dialog							\
 		--title     "[debug]$0"	\
 		--backtitle "\n$*\n"	   \
 		--yesno     "${1}"		\
@@ -356,10 +422,11 @@ function info(){
 }
 
 function debug(){
-	dialog							\
+#	dialog							\
+	whiptail							\
 		--title     "[debug]$0"	\
 		--backtitle "[debug]$0"	\
-		--yesno     "\n${*}\n"	\
+		--yesno     "${*}\n"	\
 	0 0
 	result=$?
 	if (( $result )); then
@@ -392,6 +459,8 @@ function _CAT()
 }
 
 # Módulo para emular o grep
+# Agradecimentos a SlackJeff
+# https://github.com/slackjeff/bananapkg
 function _GREP(){
     # Se encontrar a linha ele retorna a expressão encontrada! com status 0
     # se não é status 1.
@@ -973,23 +1042,7 @@ function checkDependencies(){
   fi
 }
 
-function sh_checkparametros()
-{
-	local param=$@
-	local s
-
-	for s in ${param[@]}
-	do
-		[[ $(toupper "${s}") = "--quiet" ]]   && verbose=0
-		[[ $(toupper "${s}") = "-q" ]]   	  && verbose=0
-		[[ $(toupper "${s}") = "--NOCOLOR" ]] && unsetvarcolors;USE_COLOR='n'
-		[[ $(toupper "${s}") = "-Y" ]]        && LAUTO=$true
-		[[ $(toupper "${s}") = "-F" ]]        && LFORCE=$true
-		[[ $(toupper "${s}") = "OFF" ]]       && LLIST=$false
-	done
-}
-
-checkDependencies() {
+function checkDependencies() {
   local errorFound=0
 
   for command in "${DEPENDENCIES[@]}"; do
