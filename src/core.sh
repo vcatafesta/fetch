@@ -64,65 +64,81 @@ verbose=1
 declare -l BAIXA=${MENSAGEM}
 declare -u ALTA=${MENSAGEM}
 
-if tput setaf 1 &> /dev/null; then
-	tput sgr0; # reset colors
-	bold=$(tput bold);
-	reset=$(tput sgr0);
-	rst=$(tput sgr0);
-	rs=$(tput sgr0);
-	blue=$(tput setaf 33);
-	cyan=$(tput setaf 37);
-#	green=$(tput setaf 64);
-	green=$(tput setaf 2);
-	orange=$(tput setaf 166);
-	purple=$(tput setaf 125);
-	red=$(tput setaf 124);
-	violet=$(tput setaf 61);
-	white=$(tput setaf 15);
-	yellow=$(tput setaf 136);
-	yellow=$(tput setaf 129);
-	black=$(tput setaf 0);
-else
-	bold='';
-	reset="\e[0m";
-	rst="\e[0m";
-	rs="\e[0m";
-	blue="\e[1;34m";
-	cyan="\e[1;36m";
-	green="\e[1;32m";
-	orange="\e[1;33m";
-	purple="\e[1;35m";
-	red="\e[1;31m";
-	violet="\e[1;35m";
-	white="\e[1;37m";
-	yellow="\e[1;33m";
-	pink="\033[35;1m";
-	black="\e[1;30m";
-fi
+function setvarcolors(){
+	if tput setaf 1 &> /dev/null; then
+		tput sgr0; # reset colors
+		bold=$(tput bold);
+		reset=$(tput sgr0);
+		rst=$(tput sgr0);
+		rs=$(tput sgr0);
+		blue=$(tput setaf 33);
+		cyan=$(tput setaf 37);
+#		green=$(tput setaf 64);
+		green=$(tput setaf 2);
+		orange=$(tput setaf 166);
+		purple=$(tput setaf 125);
+		red=$(tput setaf 124);
+		violet=$(tput setaf 61);
+		white=$(tput setaf 15);
+		yellow=$(tput setaf 136);
+		pink=$(tput setaf 129);
+		black=$(tput setaf 0);
+	else
+		bold='';
+		reset="\e[0m";
+		rst="\e[0m";
+		rs="\e[0m";
+		reset="\e[0m";
+		blue="\e[1;34m";
+		cyan="\e[1;36m";
+		green="\e[1;32m";
+		orange="\e[1;33m";
+		purple="\e[1;35m";
+		red="\e[1;31m";
+		violet="\e[1;35m";
+		white="\e[1;37m";
+		yellow="\e[1;33m";
+		pink="\033[35;1m";
+		black="\e[1;30m";
+	fi
+}
+
+function police()
+{
+    echo "................_@@@__"
+    echo "..... ___//___?____\________"
+    echo "...../--o--POLICE------@} ...."
+}
+
+function log_prefix()
+{
+    NORMAL="${reset}"            # Standard console grey
+    SUCCESS="${green}"           # Success is green
+    WARNING="${yellow}"          # Warnings are yellow
+    FAILURE="${red}"             # Failures are red
+    INFO="${cyan}"               # Information is light cyan
+    BRACKET="${blue}"            # Brackets are blue
+    BMPREFIX="     "
+    DOTPREFIX="  ${blue}::${reset} "
+    SUCCESS_PREFIX="${SUCCESS}  *  ${NORMAL}"
+    FAILURE_PREFIX="${FAILURE}*****${NORMAL}"
+    WARNING_PREFIX="${WARNING}  W  ${NORMAL}"
+    SKIP_PREFIX="${INFO}  S  ${NORMAL}"
+    SUCCESS_SUFFIX="${BRACKET}[${SUCCESS}  OK  ${BRACKET}]${NORMAL}"
+    FAILURE_SUFFIX="${BRACKET}[${FAILURE} FAIL ${BRACKET}]${NORMAL}"
+    WARNING_SUFFIX="${BRACKET}[${WARNING} WARN ${BRACKET}]${NORMAL}"
+    SKIP_SUFFIX="${BRACKET}[${INFO} SKIP ${BRACKET}]${NORMAL}"
+    WAIT_PREFIX="${WARNING}  R  ${NORMAL}"
+    WAIT_SUFFIX="${BRACKET}[${WARNING} WAIT ${BRACKET}]${NORMAL}"
+    FAILURE_PREFIX="${FAILURE}  X  ${NORMAL}"
+}
 
 #hex code
 barra=$'\x5c'
 check=$'\0xfb'
 reg=$'\0x2a'
-NORMAL="\\033[0;39m"         # Standard console grey
-SUCCESS="\\033[1;32m"        # Success is green
-WARNING="\\033[1;33m"        # Warnings are yellow
-FAILURE="\\033[1;31m"        # Failures are red
-INFO="\\033[1;36m"           # Information is light cyan
-BRACKET="\\033[1;34m"        # Brackets are blue
-BMPREFIX="     "
-DOTPREFIX="  ${blue}::${reset} "
-SUCCESS_PREFIX="${SUCCESS}  *  ${NORMAL}"
-FAILURE_PREFIX="${FAILURE}*****${NORMAL}"
-WARNING_PREFIX="${WARNING}  W  ${NORMAL}"
-SKIP_PREFIX="${INFO}  S  ${NORMAL}"
-SUCCESS_SUFFIX="${BRACKET}[${SUCCESS}  OK  ${BRACKET}]${NORMAL}"
-FAILURE_SUFFIX="${BRACKET}[${FAILURE} FAIL ${BRACKET}]${NORMAL}"
-WARNING_SUFFIX="${BRACKET}[${WARNING} WARN ${BRACKET}]${NORMAL}"
-SKIP_SUFFIX="${BRACKET}[${INFO} SKIP ${BRACKET}]${NORMAL}"
-WAIT_PREFIX="${WARNING}  R  ${NORMAL}"
-WAIT_SUFFIX="${BRACKET}[${WARNING} WAIT ${BRACKET}]${NORMAL}"
-FAILURE_PREFIX="${FAILURE}  X  ${NORMAL}"
+setvarcolors
+log_prefix
 BOOTLOG=/tmp/fetchlog-$USER
 KILLDELAY=3
 SCRIPT_STAT="0"
@@ -263,6 +279,24 @@ function colorize(){
         YELLOW="${BOLD}\e[33m"
     fi
     readonly ALL_OFF BOLD BLUE GREEN RED YELLOW
+}
+
+function emailcheck()
+{
+	email_REGEX="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+	email_to_check=${1}
+
+	if [ -z "${email_to_check}" ]; then
+	    echo "É necessário inserir um endereço de e-mail!"
+	    exit 2
+	else
+	    if [[ "${email_to_check}" =~ ${email_REGEX} ]]; then
+	        echo "O endereço '${email_to_check}' é válido!"
+	    else
+	        echo "O endereço '${email_to_check}' não é válido!"
+	        exit 1
+	    fi
+	fi
 }
 
 function plain()
@@ -551,12 +585,11 @@ function strzero()
 	printf "%0*d" $2 $1
 }
 
-function replicate()
-{
-	for c in $(seq 1 $2);
-	do
-		printf "%s" $1
-	done
+replicate(){
+   for counter in $(seq 1 $2);
+   do
+      printf "%s" $1
+   done
 }
 
 function maxcol()
@@ -573,50 +606,20 @@ function inkey()
 	read -t "$1" -n1 -r -p "" lastkey
 }
 
+inkey1()
+{
+   dialog	                  \
+      --title     "$2"        \
+      --backtitle "$ccabec"   \
+      --pause     "$2"        \
+      0 0         "$1"
+}
+
 # simulando bash com echo
 # Vilmar Catafesta <vcatafesta@gmail.com>
 function _cat()
 {
 	echo "$(<$1)"
-}
-
-function setvarcolors(){
-	if tput setaf 1 &> /dev/null; then
-		tput sgr0; # reset colors
-		bold=$(tput bold);
-		reset=$(tput sgr0);
-		rst=$(tput sgr0);
-		rs=$(tput sgr0);
-		blue=$(tput setaf 33);
-		cyan=$(tput setaf 37);
-#		green=$(tput setaf 64);
-		green=$(tput setaf 2);
-		orange=$(tput setaf 166);
-		purple=$(tput setaf 125);
-		red=$(tput setaf 124);
-		violet=$(tput setaf 61);
-		white=$(tput setaf 15);
-		yellow=$(tput setaf 136);
-		pink=$(tput setaf 129);
-		black=$(tput setaf 0);
-	else
-		bold='';
-		reset="\e[0m";
-		rst="\e[0m";
-		rs="\e[0m";
-		reset="\e[0m";
-		blue="\e[1;34m";
-		cyan="\e[1;36m";
-		green="\e[1;32m";
-		orange="\e[1;33m";
-		purple="\e[1;35m";
-		red="\e[1;31m";
-		violet="\e[1;35m";
-		white="\e[1;37m";
-		yellow="\e[1;33m";
-		pink="\033[35;1m";
-		black="\e[1;30m";
-	fi
 }
 
 function unsetvarcolors(){
