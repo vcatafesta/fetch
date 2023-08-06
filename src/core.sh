@@ -665,6 +665,7 @@ function display_result() {
       --beep                     \
       --no-collapse              \
       --no-cr-wrap               \
+		--no-nl-expand 				\
       --backtitle "$xbacktitle"  \
       --msgbox    "$1"           \
       0 0

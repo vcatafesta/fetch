@@ -9,7 +9,7 @@
 # 	MazonOS GNU/Linux - http://mazonos.com
 #
 # 	Created: 2019/04/05
-# 	Altered: 2023/04/29
+# 	Altered: 2023/06/25
 #
 # 	Copyright (c) 2019-2022, Vilmar Catafesta <vcatafesta@gmail.com>
 #
@@ -40,7 +40,7 @@ export PS4='${red}${0##*/}${green}[$FUNCNAME]${pink}[$LINENO]${reset} '
 shopt -s extglob
 
 # Import lib
-readonly _VERSION_="3.40.20230429"
+readonly _VERSION_="3.41.20230625"
 #LIBRARY=${LIBRARY:-'/usr/share/fetch'}
 #[[ -f "${LIBRARY}/core.sh" ]] && source "${LIBRARY}/core.sh"
 SYSCONFDIR=${SYSCONFDIR:-'/etc/fetch'}
@@ -159,8 +159,7 @@ sh_setEnvironment() {
 #		FETCH_RE='-[^-]+-[0-9]-'
 #		FETCH_RE='-[^-]+[0-9]+-[^.]+.chi.*'
 #		FETCH_RE='-[^-]+[0-9]+[^.]*\.chi[^.]*\.zst'
-#		FETCH_RE='-[^-]+[0-9]+[^.]*.chi[^.]*.zst'
-		FETCH_RE='-[0-9]+(\\.[0-9]+)*-[0-9]+'
+		FETCH_RE='-[^-]+[0-9]+[^.]*.chi[^.]*.zst'
 	else
 		CHILI_OS=$false
 		#PKG_RE='(.+)-(([^-]+)-([0-9]+))\.mz' 						#SOEN
@@ -482,7 +481,7 @@ function log_msg() {
 
 function sh_setvarcolors() {
 	if tput setaf 1 &> /dev/null; then
-		#tput sgr0; # reset colors
+      tput sgr0; # reset colors
       bold=$(tput bold);
       reset=$(tput sgr0);
       rst=$(tput sgr0);
@@ -2618,6 +2617,8 @@ sh_list_archives_directories()
 }
 
 sh_manage_scripts_and_archives() {
+
+#	sh_splitpkg "${1}"
    local packname=${aPKGSPLIT[$PKG_BASE_VERSION]}
 	local dir_desc="${CACHEDIR_LIST/list/desc}"
 
@@ -2771,12 +2772,9 @@ sh_doinstallpkg(){
 
 	if [[ ! -e "/tmp/${DESCME}" ]]; then
 		log_msg $ERR_ERROR "${red}ERROR! ${reset}I could not untar the file: ${orange}${packname}.desc${reset}"
-#		return 1
+		return 1
 	fi
-#	source "/tmp/${DESCME}" ||	log_msg $ERR_ERROR "ERROR! could not load /tmp/${DESCME}. Archive not exist. ABORT!"
-	if [[ -e "/tmp/${DESCME}" ]]; then
-		source "/tmp/${DESCME}"
-	fi
+	source "/tmp/${DESCME}" ||	log_msg $ERR_ERROR "ERROR! could not load /tmp/${DESCME}. Archive not exist. ABORT!"
 
 	if [[ -e "/tmp/${PRE_SH}" ]]; then
 		log_msg "running pre.sh hook"
@@ -2800,7 +2798,7 @@ sh_doinstallpkg(){
 			--file "${packname}" -C / | tee -a "$CACHEDIR_LIST/$name_version_build.list" || return 1
 
 	sh_create_list "$1" || return 1
-#	sh_manage_scripts_and_archives "${packname}" || return 1
+	sh_manage_scripts_and_archives "${packname}" || return 1
 	sh_list_archives_directories "${name_version_build}"
 	)
 	return "$?"
@@ -3109,6 +3107,7 @@ function sh_alienpkg_exec() {
 			pkgtar=${package##*/}                #remove diretorio deixando somente nome do pacote
 			pkgtar=${pkgtar%%.pkg.tar.zst}       #remove .tar.zst ext
 			pkgtar=${pkgtar%%.pkg.tar.xz}        #remove .tar.xz ext
+			pkgtar=${pkgtar%%.spkg.tar.xz}       #remove .tar.xz ext from venom
 			! (( CHILI_OS )) && pkgtar=${pkgtar%%-any}
 			! (( CHILI_OS )) && pkgtar=${pkgtar%%-x86_64}
 			cPacoteSemExt=${pkgtar%%.*}          # https://elmord.org/blog/?entry=20121227-manipulando-strings-bash
@@ -3155,7 +3154,9 @@ function sh_alienpkg_exec() {
 			export        DESC_VERSION="$pkgver"
 			export          DESC_BUILD="${pkgver: -1}"
 
-			deps=$(grep ^depend "$destdir"/.PKGINFO | awk -F'"' '{print $2}')
+			if [[ -e "$destdir"/.PKGINFO ]] ; then
+				deps=$(grep ^depend "$destdir"/.PKGINFO | awk -F'"' '{print $2}')
+			fi
 			pushd "$destdir" >/dev/null 2>&- || return 1
 			rm -f "$destdir"/.BUILDINFO "$destdir"/.MTREE "$destdir"/.PKGINFO >/dev/null 2>&-
 
